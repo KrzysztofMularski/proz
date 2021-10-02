@@ -15,6 +15,8 @@ struct workPlace {
     } responses[CONANS];
 };
 
+enum {status_null, status_ACK_sent, status_currentJob} jobStatus;
+
 struct workPlace workPlaces[LIBRARIANS];
 
 void changeWorkStatus(int, int, int, int, int[]);

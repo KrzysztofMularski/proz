@@ -13,7 +13,7 @@ clean:
 	rm main a.out
 
 run: main
-	mpirun -np 8 --oversubscribe ./main 
+	mpirun -np 2 --oversubscribe ./main 
 
 test:
 	gcc test.c -o a

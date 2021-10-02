@@ -32,7 +32,11 @@ void newResponseHandling(int libRank, int conanRank, int jobId, int tag, int tim
                 }
                 workPlaces[i].jobId = jobId;
             }
-            workPlaces[i].responses[conanRank].res_status = tag;
+            if (tag == ACK) {
+                workPlaces[i].responses[conanRank].res_status = ack;
+            } else if (tag == NEG) {
+                workPlaces[i].responses[conanRank].res_status = neg;
+            }
             // todo porównywanie timestamp żądania z timestamp odpowiedzi
             workPlaces[i].responses[conanRank].res_timestamp = timestamp;
             break;
@@ -64,8 +68,12 @@ int findWinnerRank(int libRank) {
     pthread_mutex_lock(&workPlacesMutex);
     for (int i=0; i<LIBRARIANS; i++) {
         if (workPlaces[i].libRank == libRank) {
+            debug("67 %d", workPlaces[i].responses[0].res_status);
+            // debug("68 %d", libRank)
             for (int j=0; j<CONANS; j++) {
                 if (workPlaces[i].responses[j].res_status == ack) {
+                    debug("71 %d", lowestTs);
+                    debug("72 %d", winnerRank);
                     if (lowestTs == -1 || lowestTs > workPlaces[i].responses[j].res_timestamp || (lowestTs == workPlaces[i].responses[j].res_timestamp && winnerRank > j)) {
                         winnerRank = j;
                         lowestTs = workPlaces[i].responses[j].res_timestamp;
@@ -102,7 +110,13 @@ void *comThreadConan(void *ptr) {
                 toSendPkt->src = rank;
                 // toSendPkt->ts = 
                 changeWorkStatus(recvPacket.src, recvPacket.jobId, recruiting, recvPacket.ts, recvPacket.conans);
-                int response = con_state == InLookingForJob ? ACK : NEG;
+                int response = -1;
+                if (jobStatus == null) {
+                    response = ACK;
+                    jobStatus = status_ACK_sent;
+                } else {
+                    response = NEG;
+                }
                 sendPacket(toSendPkt, recvPacket.src, response);
                 for (int i=0; i<CONANS; i++) {
                     if (recvPacket.conans[i] == 1)
@@ -113,7 +127,10 @@ void *comThreadConan(void *ptr) {
             case ACK:
             case NEG:
                 newResponseHandling(recvPacket.libRank, recvPacket.src, recvPacket.jobId, status.MPI_TAG, recvPacket.ts);
+                //debug("%d %d %d", recvPacket.libRank, recvPacket.src, status.MPI_TAG);
                 debug("Got Message %d from conan %d, libRank %d", status.MPI_TAG, recvPacket.src, recvPacket.libRank);
+                debug("allResArrived: %d", allResArrived(recvPacket.libRank));
+                debug("findWinnerRank: %d", findWinnerRank(recvPacket.libRank));
                 if (allResArrived(recvPacket.libRank) == TRUE) {
                     if (findWinnerRank(recvPacket.libRank) == rank) {
                         bossRank = recvPacket.libRank;

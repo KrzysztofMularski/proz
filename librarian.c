@@ -33,6 +33,7 @@ void *comThreadLibrarian(void *ptr) {
         switch (status.MPI_TAG) {
             case ACK:
             case NEG:
+                debug("Got Message %d from conan %d", status.MPI_TAG, packet.src);
                 if (lib_state != InLookingForConan) continue;
                 if (packet.jobId != jobId) continue;
                 libQueueReceived(packet.src, packet.ts, status.MPI_TAG);
@@ -82,6 +83,8 @@ void mainLoopLibrarian() {
                     conans_array[rand] = 1;
                     packetsToSend++;
                 }
+                conans_array[0] = 1;
+                packetsToSend = 1;
                 libQueueLength = packetsToSend;
                 libQueue = malloc(sizeof(struct libQueueElement)*libQueueLength);
                 libQueueReceivedMessagesNumber = 0;

@@ -10,8 +10,8 @@
 #include <string.h>
 #include <pthread.h>
 
-#define CONANS 5
-#define LIBRARIANS 3
+#define CONANS 1
+#define LIBRARIANS 1
 #define UNIFORMS 3
 #define WASHING_MACHINES 2
 
